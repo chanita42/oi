@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมค้นหาข้อมูลธาตุและคำนวณ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #94c8f1;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .result p {
+            background-color: #e7e7e7;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 25px;
+            background-color: #984caf;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #79a4e4;
+        }
+        #calculatorSection, #searchSection {
+            display: none;
+        }
+        #massResult {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- หน้าแรก: ค้นหาข้อมูลธาตุ -->
+    <div id="searchSection" class="container">
+        <h1>ค้นหาข้อมูลธาตุ</h1>
+        <input type="text" id="searchInput" placeholder="ป้อนชื่อหรือสัญลักษณ์ของธาตุ..."> 
+        <div id="result" class="result"></div>
+        <button onclick="searchElement()">ค้นหาข้อมูลธาตุ</button>
+        <button onclick="showCalculator()">ไปยังหน้าคำนวณ</button>
+    </div>
+
+    <!-- หน้า: คำนวณ -->
+    <div id="calculatorSection" class="container" style="display:none;">
+        <h1>คำนวณข้อมูลธาตุ</h1> 
+        <p><strong>กรุณากรอกชื่อธาตุ:</strong></p>
+        <input type="text" id="elementInput" placeholder="ป้อนชื่อหรือสัญลักษณ์ของธาตุ..." onkeyup="checkElement()">
+        <input type="number" id="moles" placeholder="จำนวนโมล" min="0" step="any">
+        <div id="massResult"class="result"></div>
+        <button onclick="calculateMass()">คำนวณ</button>
+        <button onclick="goBack()">กลับไปที่หน้าค้นหาธาตุ</button>
+    </div>
+
+    <script>
+        // ข้อมูลธาตุ
+        const elements = [
+            { name: "Hydrogen", symbol: "H", atomicNumber: 1, atomicWeight: 1.008, density: 0.08988, meltingPoint: -259.16, boilingPoint: -252.87 },
+            { name: "Helium", symbol: "He", atomicNumber: 2, atomicWeight: 4.0026, density: 0.1786, meltingPoint: -272.2, boilingPoint: -268.93 },
+            { name: "Carbon", symbol: "C", atomicNumber: 6, atomicWeight: 12.011, density: 2.267, meltingPoint: 3550, boilingPoint: 4827 },
+            { name: "Oxygen", symbol: "O", atomicNumber: 8, atomicWeight: 15.999, density: 0.001429, meltingPoint: -218.79, boilingPoint: -182.96 },
+            // เพิ่มธาตุอื่นๆ ตามต้องการ
+        ];
+        // ฟังก์ชั่นค้นหาธาตุ  
+        function searchElement() {
+            const query = document.getElementById("searchInput").value.trim().toLowerCase();
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = ""; // เคลียร์ผลลัพธ์เก่า
+
+            // ตรวจสอบว่า query มีข้อมูลหรือไม่
+            if (query === "") {
+                return; // ถ้าไม่มีคำค้นหาจะไม่แสดงผลลัพธ์
+            }
+
+            // ค้นหาธาตุที่มีชื่อหรือสัญลักษณ์ตรงกับคำค้นหาที่ใส่ไป
+            const filteredElements = elements.filter(element => 
+                element.name.toLowerCase() === query || element.symbol.toLowerCase() === query
+            );
+            if (filteredElements.length === 0) {
+                resultDiv.innerHTML = "<p>ไม่พบข้อมูลธาตุที่ค้นหา</p>";
+            } else {
+                filteredElements.forEach(element => {
+                    const resultHTML = `
+                        <p><strong>ชื่อ:</strong> ${element.name}<br>
+                           <strong>สัญลักษณ์:</strong> ${element.symbol}<br>
+                           <strong>หมายเลขอะตอม:</strong> ${element.atomicNumber}<br>
+                           <strong>มวลอะตอม:</strong> ${element.atomicWeight}<br>
+                           <strong>ความหนาแน่น:</strong> ${element.density} g/cm³<br>
+                           <strong>จุดหลอมละลาย:</strong> ${element.meltingPoint} °C<br>
+                           <strong>จุดเดือด:</strong> ${element.boilingPoint} °C
+                        </p>
+                    `;
+                    resultDiv.innerHTML += resultHTML;
+                });
+            }
+        }
+        // ฟังก์ชั้นการคำนวณมวลจากโมล
+        function calculateMass() {
+            const elementInput = document.getElementById("elementInput").value.trim();
+            const moles = parseFloat(document.getElementById("moles").value);
+            const massResultDiv = document.getElementById("massResult");
+
+            if (elementInput === "" || isNaN(moles) || moles <= 0) {
+                massResultDiv.innerHTML = "<p>กรุณากรอกข้อมูลให้ถูกต้อง</p>";
+                return;
+            }
+
+            const element = findElement(elementInput);
+            if (!element) {
+                massResultDiv.innerHTML = "<p>ธาตุที่กรอกไม่มีอยู่ในรายการ</p>";
+                return;
+            }
+
+            const mass = element.atomicWeight * moles;
+            massResultDiv.innerHTML = `
+                <p>มวลของ ${element.name} (${element.symbol}) ใน ${moles} โมล คือ ${mass} กรัม</p>
+            `;
+        }
+        
+         // ฟังก์ชั่นค้นหาธาตุจากชื่อหรือสัญลักษณ์
+         function findElement(input) {
+            // ค้นหาจากชื่อธาตุหรือสัญลักษณ์
+            return elements.find(element => 
+                element.name.toLowerCase() === input.toLowerCase() || 
+                element.symbol.toLowerCase() === input.toLowerCase()
+            );
+        }
+        // ฟังก์ชั่นตรวจสอบชื่อธาตุ
+        function checkElement() {
+            const elementInput = document.getElementById("elementInput").value.trim();
+            if (elementInput !== "") {
+                const element = findElement(elementInput);
+                if (element) {
+                    // หากพบธาตุที่ตรงกัน
+                    document.getElementById("massResult").innerHTML = ""; // ลบข้อความผลลัพธ์ก่อนหน้า
+                } else {
+                    document.getElementById("massResult").innerHTML = "<p>ธาตุที่กรอกไม่มีอยู่ในรายการ</p>";
+                }
+            }
+        }
+
+        // ฟังก์ชั่นเพื่อไปยังหน้าคำนวณ
+        function showCalculator() {
+            // เคลียร์ข้อมูลการค้นหาทุกครั้งก่อนไปหน้าคำนวณ
+            document.getElementById("searchInput").value = ""; // เคลียร์ช่อง input
+            document.getElementById("result").innerHTML = ""; // เคลียร์ผลลัพธ์การค้นหา
+
+            // ซ่อนหน้าค้นหาธาตุและแสดงหน้าคำนวณ
+            document.getElementById("searchSection").style.display = "none";
+            document.getElementById("calculatorSection").style.display = "block";
+        }
+
+        // ฟังก์ชั่นกลับไปที่หน้าค้นหาธาตุ
+        function goBack() {
+            // เคลียร์ข้อมูลทุกอย่างในหน้าคำนวณ
+            document.getElementById("searchInput").value = ""; // เคลียร์ช่อง input
+            document.getElementById("result").innerHTML = ""; // เคลียร์ผลลัพธ์การค้นหา
+
+            // ซ่อนหน้าคำนวณและแสดงหน้าค้นหาธาตุ
+            document.getElementById("calculatorSection").style.display = "none";
+            document.getElementById("searchSection").style.display = "block";
+        }
+
+        // แสดงหน้าค้นหาธาตุเป็นค่าเริ่มต้น
+        window.onload = function() {
+            document.getElementById("searchSection").style.display = "block";
+            document.getElementById("calculatorSection").style.display = "none";
+        }
+    </script>
+
+</body>
+</html>
